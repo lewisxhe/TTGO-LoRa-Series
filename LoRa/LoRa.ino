@@ -1,13 +1,27 @@
 #include <SPI.h>
 #include <LoRa.h>
 #include "ds3231.h"
+#include <WiFi.h>
 
 OLED_CLASS_OBJ display(OLED_ADDRESS, OLED_SDA, OLED_SCL);
+
+#define WIFI_SSID       "wifi ssid"
+#define WIFI_PASSWORD   "wifi password"
 
 void setup()
 {
     Serial.begin(115200);
     while (!Serial);
+
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+        Serial.println("WiFi Connect Fail");
+        esp_restart();
+    }
+    Serial.print("Connected : ");
+    Serial.println(WiFi.SSID());
+    Serial.print("IP:");
+    Serial.println(WiFi.localIP().toString());
 
     if (OLED_RST > 0) {
         pinMode(OLED_RST, OUTPUT);
@@ -23,7 +37,7 @@ void setup()
     display.clear();
     display.setFont(ArialMT_Plain_16);
     display.setTextAlignment(TEXT_ALIGN_CENTER);
-    display.drawString(display.getWidth() / 2, display.getHeight() / 2, "LoRa Receiver");
+    display.drawString(display.getWidth() / 2, display.getHeight() / 2, LORA_SENDER ? "LoRa Sender" : "LoRa Receiver");
     display.display();
 
     String info = ds3231_test();
@@ -50,15 +64,20 @@ int count = 0;
 void loop()
 {
 #if LORA_SENDER
-    display.clear();
-    display.setTextAlignment(TEXT_ALIGN_CENTER);
-    display.drawString(display.getWidth() / 2, display.getHeight() / 2, "Send Count:" + String(count));
-    display.display();
-    LoRa.beginPacket();
-    LoRa.print("lora: ");
-    LoRa.print(count);
-    LoRa.endPacket();
-    ++count;
+    int32_t rssi;
+    if (WiFi.status() == WL_CONNECTED) {
+        rssi = WiFi.RSSI();
+        display.clear();
+        display.setTextAlignment(TEXT_ALIGN_CENTER);
+        display.drawString(display.getWidth() / 2, display.getHeight() / 2, "Send Count:" + String(rssi));
+        display.display();
+        LoRa.beginPacket();
+        LoRa.print("WiFi RSSI: ");
+        LoRa.print(rssi);
+        LoRa.endPacket();
+    }else{
+        Serial.println("WiFi Connect lost ...");
+    }
     delay(2500);
 #else
     if (LoRa.parsePacket()) {
