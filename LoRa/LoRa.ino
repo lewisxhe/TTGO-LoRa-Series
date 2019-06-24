@@ -3,16 +3,46 @@
 #include "ds3231.h"
 #include <WiFi.h>
 #include <SD.h>
+#include <Button2.h>
 
 OLED_CLASS_OBJ display(OLED_ADDRESS, OLED_SDA, OLED_SCL);
 
-#define WIFI_SSID       "Xiaomi"
-#define WIFI_PASSWORD   "12345678"
+#define WIFI_SSID       ""
+#define WIFI_PASSWORD   ""
+
+#if defined(BUTTON_1)
+Button2 btn(BUTTON_1);
+#endif
+
+#if defined(BUTTON_1)
+void pressHander(Button2 &b)
+{
+    Serial.println("press BUTTON 0 goto sleep\n");
+    display.displayOff();
+    LoRa.sleep();
+    delay(1000);
+    esp_sleep_enable_ext0_wakeup((gpio_num_t )BUTTON_1, LOW);
+    esp_deep_sleep_start();
+}
+#endif
+
+#include <Ticker.h>
+Ticker tick;
+
+void btmloop()
+{
+    btn.loop();
+}
 
 void setup()
 {
     Serial.begin(115200);
     while (!Serial);
+
+#if defined(BUTTON_1)
+    btn.setLongClickHandler(pressHander);
+    tick.attach_ms(30,btmloop);
+#endif
 
     if (OLED_RST > 0) {
         pinMode(OLED_RST, OUTPUT);
@@ -93,22 +123,28 @@ int count = 0;
 
 void loop()
 {
+    static uint64_t timestamp = 0;
+// #if defined(BUTTON_1)
+//     btn.loop();
+// #endif
 #if LORA_SENDER
-    int32_t rssi;
-    if (WiFi.status() == WL_CONNECTED) {
-        rssi = WiFi.RSSI();
-        display.clear();
-        display.setTextAlignment(TEXT_ALIGN_CENTER);
-        display.drawString(display.getWidth() / 2, display.getHeight() / 2, "Send RSSI:" + String(rssi));
-        display.display();
-        LoRa.beginPacket();
-        LoRa.print("WiFi RSSI: ");
-        LoRa.print(rssi);
-        LoRa.endPacket();
-    } else {
-        Serial.println("WiFi Connect lost ...");
+    if (millis() - timestamp > 2500) {
+        timestamp = millis();
+        int32_t rssi;
+        if (WiFi.status() == WL_CONNECTED) {
+            rssi = WiFi.RSSI();
+            display.clear();
+            display.setTextAlignment(TEXT_ALIGN_CENTER);
+            display.drawString(display.getWidth() / 2, display.getHeight() / 2, "Send RSSI:" + String(rssi));
+            display.display();
+            LoRa.beginPacket();
+            LoRa.print("WiFi RSSI: ");
+            LoRa.print(rssi);
+            LoRa.endPacket();
+        } else {
+            Serial.println("WiFi Connect lost ...");
+        }
     }
-    delay(2500);
 #else
     if (LoRa.parsePacket()) {
         String recv = "";

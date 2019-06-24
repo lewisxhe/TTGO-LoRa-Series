@@ -1,18 +1,19 @@
 #include <Arduino.h>
 
-#define LORA_V1_0_OLED  0
-#define LORA_V1_2_OLED  0
-#define LORA_V1_6_OLED  0
-#define LORA_V2_0_OLED  1
+// #define LORA_V1_0_OLED
+// #define LORA_V1_2_OLED
+// #define LORA_V1_6_OLED
+// #define LORA_V2_0_OLED
+// #define LORA_V1_3_OLED
 
 #define LORA_SENDER 0
 // #define LORA_SENDER 1
 
-// #define LORA_PERIOD 868  
+#define LORA_PERIOD 868  
 // #define LORA_PERIOD 915     
-#define LORA_PERIOD 433  
+// #define LORA_PERIOD 433  
 
-#if LORA_V1_0_OLED
+#if defined(LORA_V1_0_OLED)
 #include <Wire.h> 
 #include "SSD1306Wire.h" 
 #define OLED_CLASS_OBJ  SSD1306Wire
@@ -34,8 +35,9 @@
 #define SDCARD_MISO -1
 #define SDCARD_SCLK -1
 #define SDCARD_CS   -1
+#define BUTTON_1     0
 
-#elif LORA_V1_2_OLED
+#elif defined(LORA_V1_2_OLED)
 //Lora V1.2 ds3231
 #include <Wire.h> 
 #include "SSD1306Wire.h" 
@@ -58,7 +60,7 @@
 
 #define ENABLE_DS3231
 
-#elif LORA_V1_6_OLED
+#elif defined(LORA_V1_6_OLED)
 #include <Wire.h> 
 #include "SSD1306Wire.h" 
 #define OLED_CLASS_OBJ  SSD1306Wire
@@ -79,7 +81,7 @@
 #define SDCARD_SCLK 14
 #define SDCARD_CS   13
 
-#elif LORA_V2_0_OLED
+#elif defined(LORA_V2_0_OLED)
 #include <Wire.h> 
 #include "SSD1306Wire.h" 
 #define OLED_CLASS_OBJ  SSD1306Wire
@@ -88,17 +90,39 @@
 #define OLED_SCL    22
 #define OLED_RST    -1
 
-#define CONFIG_MOSI 27
-#define CONFIG_MISO 19
+#define CONFIG_MOSI 19//27
+#define CONFIG_MISO 27//19
 #define CONFIG_CLK  5
 #define CONFIG_NSS  18
-#define CONFIG_RST  23
+#define CONFIG_RST  14//23
 #define CONFIG_DIO0 26
 
 #define SDCARD_MOSI 15
 #define SDCARD_MISO 2
 #define SDCARD_SCLK 14
 #define SDCARD_CS   13
+
+#elif defined(LORA_V1_3_OLED)
+
+#include <Wire.h> 
+#include "SSD1306Wire.h" 
+#define OLED_CLASS_OBJ  SSD1306Wire
+#define OLED_ADDRESS    0x3C
+#define OLED_SDA        21
+#define OLED_SCL        22
+#define OLED_RST        16
+#define CONFIG_MOSI     27
+#define CONFIG_MISO     19
+#define CONFIG_CLK      5
+#define CONFIG_NSS      18
+#define CONFIG_RST      14
+#define CONFIG_DIO0     26
+
+#define SDCARD_MOSI     -1
+#define SDCARD_MISO     -1
+#define SDCARD_SCLK     -1
+#define SDCARD_CS       -1
+#define BUTTON_1        36
 
 #else
 #error "please select board"
