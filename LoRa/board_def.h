@@ -133,7 +133,7 @@
 #define BAND 433E6
 #elif LORA_PERIOD == 868
 #define BAND 868E6
-#elif LORA_PERIOD = 915
+#elif LORA_PERIOD == 915
 #define BAND 915E6
 #else
 #error "Please select the correct lora frequency"
